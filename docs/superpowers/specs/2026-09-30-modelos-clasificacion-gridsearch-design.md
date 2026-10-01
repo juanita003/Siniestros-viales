@@ -77,7 +77,7 @@ Tabla `medidas` (6 columnas) y gráfica de barras. El mejor modelo es `medidas.l
 - Se imprime el f1 con balanceo global frente al f1 con datos reales.
 
 ### 11.9 Conclusión (markdown)
-Mejor modelo, señales de overfitting (Train vs Test CV) y diferencia entre el f1 global y el real, explicada por la fuga de SMOTENC antes de la CV. Incluye una nota: Árbol, RF, XGBoost y SVM podrían manejar el desbalance sin remuestrear (`class_weight='balanced'` / `scale_pos_weight`), mientras que KNN y MLP sí requieren el balanceo. El texto se escribe después de ejecutar con los resultados reales; sin ellos se deja una plantilla con las preguntas a responder.
+Mejor modelo, señales de overfitting (Train vs Test CV) y diferencia entre el f1 global y el real, explicada por dos efectos: la fuga de SMOTENC antes de la CV y que los folds de validación globales son 50/50 con sintéticos, mientras que los reales conservan la proporción ~80/20. Incluye una nota: Árbol, RF, XGBoost y SVM podrían manejar el desbalance sin remuestrear (`class_weight='balanced'` / `scale_pos_weight`), mientras que KNN y MLP sí requieren el balanceo. El texto se escribe después de ejecutar con los resultados reales; sin ellos se deja una plantilla con las preguntas a responder.
 
 ## Fuera de alcance
 - Cambios en las secciones 1 a 7, más allá de los textos mencionados.
