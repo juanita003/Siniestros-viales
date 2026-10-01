@@ -33,7 +33,7 @@ Actualizar las menciones a "3 clases" o MUERTOS: el objetivo pasa a ser binario 
 3. `X_real`, `Y_real` = copia sin balancear (binaria), que se usa en la verificación.
 4. `RandomUnderSampler(sampling_strategy={'SOLO DAÑOS': n_daños // 2}, random_state=42)`.
 5. `SMOTENC(categorical_features=indices_categoricos, random_state=42)`, que sube HERIDOS hasta igualar DAÑOS.
-6. Se reconstruye `data`, se grafica después del balanceo y se muestra `value_counts()`.
+6. Se reconstruye `data`, **se mezclan las filas** (`sample(frac=1, random_state=42)`; SMOTENC deja los sintéticos al final y `cv=10` sin shuffle los concentraría en los últimos folds), se grafica después del balanceo y se muestra `value_counts()`.
 7. Markdown de resultado con los conteos finales.
 
 ### Secciones 9 y 10
@@ -72,7 +72,7 @@ Tabla `medidas` (6 columnas) y gráfica de barras. El mejor modelo es `medidas.l
 
 ### 11.8 Verificación (enfoque C)
 - Datos: `X_real`, `Y_real` codificado con `labelencoder`.
-- `imblearn.pipeline.Pipeline`: `RandomUnderSampler` (DAÑOS al 50 % del fold, mediante una función `sampling_strategy`), `SMOTENC` (categóricas por nombre), `ColumnTransformer` (`MinMaxScaler` en `HORA_DIA` y `RESULTADO DE BEODEZ`; `OneHotEncoder(handle_unknown='ignore', drop='first')` en las categóricas) y `clone(mejor_modelo)`.
+- `imblearn.pipeline.Pipeline`: `RandomUnderSampler` (DAÑOS al 50 % del fold, mediante una función `sampling_strategy`), `SMOTENC` (categóricas por nombre), `ColumnTransformer` (`MinMaxScaler` en `HORA_DIA` y `RESULTADO DE BEODEZ`; `OneHotEncoder(handle_unknown='ignore')` en las categóricas) y `clone(mejor_modelo)`.
 - `cross_val_score(pipeline, X_real, y_real, cv=StratifiedKFold(10, shuffle=True, random_state=42), scoring='f1_macro')`.
 - Se imprime el f1 con balanceo global frente al f1 con datos reales.
 
