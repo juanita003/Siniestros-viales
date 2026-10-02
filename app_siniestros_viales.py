@@ -353,11 +353,11 @@ def preparar_entrada(entrada, variables, scaler):
 def seccion(numero, titulo):
     st.markdown(
         f"""
-        <div class="seccion">
-            <span class="numero">{numero}</span>
-            {titulo}
-        </div>
-        """,
+<div class="seccion">
+    <span class="numero">{numero}</span>
+    {titulo}
+</div>
+""",
         unsafe_allow_html=True
     )
 
@@ -382,10 +382,9 @@ izquierda, derecha = st.columns([1.65, 1], gap="medium")
 
 with izquierda:
     with st.form("siniestro"):
-        st.markdown("""
-        <div class="titulo-form">Características del siniestro</div>
-        <div class="subtitulo">Selecciona la información registrada.</div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="titulo-form">Características del siniestro</div>
+<div class="subtitulo">Selecciona la información registrada.</div>
+""", unsafe_allow_html=True)
 
         seccion("01", "Cuándo ocurrió")
 
@@ -508,12 +507,11 @@ with derecha:
         )
 
         st.markdown(
-            f"""
-            <div style="text-align:center">
-                <span class="pill">{pill}</span>
-            </div>
-            <div class="resultado-titulo">Gravedad estimada</div>
-            """,
+            f"""<div style="text-align:center">
+    <span class="pill">{pill}</span>
+</div>
+<div class="resultado-titulo">Gravedad estimada</div>
+""",
             unsafe_allow_html=True
         )
 
@@ -535,51 +533,39 @@ with derecha:
                 else "El modelo estima un siniestro con personas heridas."
             )
 
-            escudo = f"""
-            <svg width="85" height="95" viewBox="0 0 85 95"
-                 aria-hidden="true">
-                <path d="M42 3 L78 18 V49 Q78 75 42 91
-                         Q6 75 6 49 V18 Z"
-                      fill="{color}"/>
-                <text x="42" y="64" text-anchor="middle"
-                      fill="white" font-family="sans-serif"
-                      font-size="48" font-weight="bold">
-                    {simbolo}
-                </text>
-            </svg>
-            """
+            escudo = f"""<svg width="85" height="95" viewBox="0 0 85 95" aria-hidden="true">
+<path d="M42 3 L78 18 V49 Q78 75 42 91 Q6 75 6 49 V18 Z" fill="{color}"/>
+<text x="42" y="64" text-anchor="middle" fill="white" font-family="sans-serif" font-size="48" font-weight="bold">{simbolo}</text>
+</svg>"""
 
             st.markdown(
                 f"""
-                <div class="insignia" style="background:{fondo}">
-                    {escudo}
-                </div>
-                <div class="gravedad" style="color:{color}">
-                    {html.escape(gravedad)}
-                </div>
-                <div class="descripcion">{descripcion}</div>
-                """,
+<div class="insignia" style="background:{fondo}">
+    {escudo}
+</div>
+<div class="gravedad" style="color:{color}">
+    {html.escape(gravedad)}
+</div>
+<div class="descripcion">{descripcion}</div>
+""",
                 unsafe_allow_html=True
             )
 
         else:
-            st.markdown("""
-            <div class="insignia"
-                 style="background:#e7eff7;color:#547089;font-size:60px">
-                ⌕
-            </div>
-            <div class="descripcion">
-                Completa el formulario y pulsa
-                <b>Estimar gravedad</b> para consultar el resultado.
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("""<div class="insignia" style="background:#e7eff7;color:#547089;font-size:60px">
+    ⌕
+</div>
+<div class="descripcion">
+    Completa el formulario y pulsa
+    <b>Estimar gravedad</b> para consultar el resultado.
+</div>
+""", unsafe_allow_html=True)
 
-        st.markdown("""
-        <div class="nota">
-            ⓘ &nbsp; La estimación no confirma
-            las consecuencias reales del evento.
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="nota">
+    ⓘ &nbsp; La estimación no confirma
+    las consecuencias reales del evento.
+</div>
+""", unsafe_allow_html=True)
 
         if resultado:
             with st.expander("Ver datos utilizados"):
@@ -593,8 +579,7 @@ with derecha:
                 st.caption("Datos de la última estimación enviada.")
 
 
-st.markdown("""
-<div class="franja">
+st.markdown("""<div class="franja">
     ⓘ &nbsp; El modelo clasifica entre
     <b>SOLO DAÑOS</b> y <b>HERIDOS</b>.
 </div>
