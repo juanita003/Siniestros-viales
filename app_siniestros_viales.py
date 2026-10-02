@@ -327,11 +327,16 @@ def cargar_modelo():
     return modelo, encoder, list(variables), scaler, opciones
 
 
-def preparar_entrada(entrada, variables, scaler):
+def preparar_entrada(entrada, variables):
+    """Reconstruye la matriz de entrada con el orden de columnas del entrenamiento.
+
+    El modelo final (Random Forest) fue entrenado con las variables numéricas en su
+    escala original, de modo que la hora y el resultado de beodez se usan tal cual.
+    """
     fila = pd.DataFrame(0.0, index=[0], columns=variables)
 
     numericas = ["HORA_DIA", "RESULTADO DE BEODEZ"]
-    fila.loc[:, numericas] = scaler.transform(entrada[numericas])
+    fila.loc[:, numericas] = entrada[numericas].to_numpy(dtype=float)
 
     categoricas = [
         "DÍA DE LA SEMANA",
@@ -477,7 +482,7 @@ with izquierda:
         try:
             with st.spinner("Analizando el evento..."):
                 entrada_modelo = preparar_entrada(
-                    entrada, variables, scaler
+                    entrada, variables
                 )
 
                 prediccion = modelo.predict(entrada_modelo)[0]

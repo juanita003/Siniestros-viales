@@ -29,7 +29,7 @@
 
 \begin{abstract}
 \noindent
-A partir de 89.826 registros de accidentalidad vial del municipio de Envigado (2010--2022) publicados en el portal de Datos Abiertos de Colombia, se consolidaron 43.759 siniestros únicos y se ejecutó un pipeline completo de preparación de datos: reconciliación de formatos, eliminación de variables irrelevantes y redundantes, imputación de nulos, balanceo de clases y transformaciones. Con 8 variables predictoras se abordó la clasificación binaria de la gravedad del accidente (\vartxt{SOLO DAÑOS} frente a \vartxt{HERIDOS}), entrenando seis modelos de clasificación con búsqueda de hiperparámetros y validación cruzada de 10 folds. El mejor modelo en la comparación fue KNN (f1 macro de 0,80); sin embargo, al verificar con datos reales y balanceo dentro de cada fold, el desempeño realista estimado es de 0,67, cifra que refleja tanto la fuga de información del sobremuestreo sintético como la proporción real de clases.
+A partir de 89.826 registros de accidentalidad vial del municipio de Envigado (2010--2022) publicados en el portal de Datos Abiertos de Colombia, se consolidaron 43.759 siniestros únicos y se ejecutó un pipeline completo de preparación de datos: reconciliación de formatos, eliminación de variables irrelevantes y redundantes, imputación de nulos, balanceo de clases y transformaciones. Con 8 variables predictoras se abordó la clasificación binaria de la gravedad del accidente (\vartxt{SOLO DAÑOS} frente a \vartxt{HERIDOS}), entrenando seis modelos de clasificación con búsqueda de hiperparámetros y validación cruzada de 10 folds. Aunque KNN obtuvo el mayor f1 en la comparación (0,80), se seleccionó \textbf{Random Forest} como modelo final por su mejor equilibrio entre desempeño y generalización: su f1 con validación en datos reales y balanceo dentro de cada fold es de 0,72, frente a los 0,67 de KNN, que además presentaba la mayor brecha de sobreajuste. El modelo se desplegó finalmente como aplicación web interactiva con Streamlit.
 \end{abstract}
 
 \section{Objetivo}
@@ -273,7 +273,25 @@ Para obtener una estimación realista, el mejor modelo se reevaluó con los dato
 f1 con balanceo global: \textbf{0,8013} \quad$\rightarrow$\quad f1 con balanceo por fold: \textbf{0,6686 $\pm$ 0,0061} \quad(diferencia: 0,1327)
 \end{center}
 
-La caída combina ambos efectos. KNN es especialmente sensible a la fuga de SMOTENC: un registro sintético casi siempre tiene como vecino más cercano al registro real del que fue generado. Por ello, el valor realista a reportar del modelo en producción es \textbf{0,67}; las cifras de la Tabla~\ref{tab:resultados} sirven para \emph{comparar} modelos entre sí, no como desempeño esperado en datos reales.
+La caída combina ambos efectos. KNN es especialmente sensible a la fuga de SMOTENC: un registro sintético casi siempre tiene como vecino más cercano al registro real del que fue generado.
+
+\textbf{Selección del modelo final.} Aunque KNN encabezó la comparación con validación cruzada, se seleccionó \textbf{Random Forest} como modelo final por ofrecer el mejor equilibrio entre desempeño y generalización: su f1 en validación (0,7854) es prácticamente igual al de KNN, pero su brecha de sobreajuste es menos de la mitad (0,070 frente a 0,159). Además, al ser un método basado en árboles, Random Forest es menos sensible a la fuga de información del sobremuestreo sintético: al repetir la verificación con datos reales y balanceo por fold (mismo protocolo que para KNN), su f1 realista es de \textbf{0,7159 $\pm$ 0,0074} ---una caída de apenas 0,070 desde el balanceo global, frente a los 0,1327 de KNN---, lo que lo convierte en el modelo con mejor desempeño esperado en producción. Las cifras de la Tabla~\ref{tab:resultados} sirven para \emph{comparar} modelos entre sí; el valor realista a reportar es el de la verificación por fold.
+
+\section{Despliegue}
+\label{sec:despliegue}
+
+El modelo seleccionado (Random Forest) se puso en producción mediante una aplicación web interactiva desarrollada con \textbf{Streamlit} (\vartxt{app\_siniestros\_viales.py}), acompañada de un archivo \vartxt{requirements.txt} que fija las dependencias del despliegue (streamlit, pandas, scikit-learn, joblib, imbalanced-learn, xgboost).
+
+\textbf{Artefacto del modelo.} El notebook serializa en \vartxt{modelo-siniestros.pkl} todo lo necesario para inferir: el modelo entrenado, el codificador de la variable objetivo, la lista de columnas predictoras en el orden del entrenamiento, el escalador \vartxt{MinMax} y las opciones de los menús desplegables. Como el modelo final es un método basado en árboles ---insensible a la escala de las variables numéricas---, se entrenó con \vartxt{HORA\_DIA} y \vartxt{RESULTADO DE BEODEZ} en su escala original; la aplicación replica exactamente esa codificación al construir la matriz de entrada, de modo que la inferencia reproduce fielmente el entrenamiento.
+
+\textbf{Funcionamiento de la aplicación.} El usuario selecciona los ocho factores del siniestro (mes, hora del día en formato hh:00, día de la semana, área, barrio, clase de accidente, resultado de beodez y causa registrada). Al enviar el formulario, la aplicación activa las columnas dummy correspondientes, reconstruye las 60 columnas en el orden de entrenamiento y muestra la clasificación estimada (\vartxt{HERIDOS} o \vartxt{SOLO DAÑOS}), junto con los datos utilizados en la consulta (Figura~\ref{fig:ui}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.68\textwidth]{figures/app-screenshot}
+\caption{Interfaz de la aplicación Streamlit de estimación de gravedad de siniestros viales.}
+\label{fig:ui}
+\end{figure}
 
 \section{Conclusiones}
 
@@ -281,8 +299,10 @@ La caída combina ambos efectos. KNN es especialmente sensible a la fuga de SMOT
   \item El pipeline de preparación transformó un archivo crudo de 89.826 filas $\times$ 17 columnas ---con siniestros duplicados, formatos mixtos de fecha/hora y columnas casi vacías--- en un conjunto de 43.759 siniestros únicos descrito por 8 variables predictoras limpias, sin nulos y con cardinalidad controlada, del que se derivaron dos versiones persistidas (categórica discretizada y numérica normalizada).
   \item La mayor señal predictiva la aportan \vartxt{CLASE DE ACCIDENTE} (máx.\ $|r|=0{,}59$) y \vartxt{CAUSA\_AGRUPADA} (0,22); el resto de variables tiene correlación lineal mínima con la gravedad, aunque las cíclicas (hora, día de la semana, mes) se conservaron porque la correlación de Pearson subestima relaciones no monótonas.
   \item En la comparación con validación cruzada, KNN fue el mejor modelo (f1 macro 0,8013), seguido de Random Forest y XGBoost; los modelos más flexibles encabezan el ranking, pero también muestran mayor brecha de sobreajuste.
-  \item La verificación con datos reales demostró que balancear antes de la validación cruzada infla la medida: el f1 realista de KNN es 0,6686 $\pm$ 0,0061. El protocolo correcto ---balancear únicamente dentro del fold de entrenamiento--- es la cifra que debe reportarse.
+  \item La verificación con datos reales demostró que balancear antes de la validación cruzada infla la medida: el f1 realista de KNN es 0,6686 $\pm$ 0,0061 y el de Random Forest es 0,7159 $\pm$ 0,0074. El protocolo correcto ---balancear únicamente dentro del fold de entrenamiento--- es la cifra que debe reportarse.
   \item El balanceo por remuestreo no es la única alternativa: árbol, Random Forest, XGBoost y SVM pueden manejar el desbalance con pesos de clase (\vartxt{class\_weight='balanced'} o \vartxt{scale\_pos\_weight}) entrenando con datos reales, mientras que KNN y la red neuronal sí requieren el remuestreo. Se usó el mismo balanceo para los seis modelos con el fin de compararlos en igualdad de condiciones.
+  \item \textbf{Modelo final: Random Forest.} Aunque KNN obtuvo el mayor f1 en la comparación con validación cruzada (0,8013 frente a 0,7854), se seleccionó Random Forest por dos razones: (1) su brecha de sobreajuste es menos de la mitad de la de KNN (0,070 frente a 0,159), y (2) es menos sensible a la fuga de información del sobremuestreo, como confirmó la verificación con datos reales, donde supera a KNN (0,7159 frente a 0,6686). En consecuencia, Random Forest es el modelo con mejor desempeño esperado en producción.
+  \item El modelo seleccionado se desplegó como aplicación web Streamlit que, a partir de los ocho factores del siniestro, reconstruye la matriz de entrada del modelo y devuelve la gravedad estimada; el artefacto serializado (\vartxt{modelo-siniestros.pkl}) incluye el modelo, el codificador, el escalador y las opciones de los desplegables, de modo que la inferencia es reproducible fuera del notebook.
 \end{itemize}
 
 \end{document}
