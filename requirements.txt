@@ -1,0 +1,6 @@
+streamlit>=1.43
+pandas
+scikit-learn
+joblib
+imbalanced-learn
+xgboost
